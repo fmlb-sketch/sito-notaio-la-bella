@@ -25,6 +25,7 @@ const buttonVariants = cva(
       },
       size: {
         default: "px-[26px] py-[15px]",
+        sm: "px-5 py-2.5 text-xs",
         icon: "h-10 w-10 shrink-0",
       },
     },
@@ -61,6 +62,618 @@ function SheetContent({ className, children, ...props }) {
         {children}
       </Dialog.Content>
     </Dialog.Portal>
+  );
+}
+
+/* ---------------------------------------------------------------- */
+/* Richiedi un preventivo — form (Netlify Forms)                     */
+/* ---------------------------------------------------------------- */
+const TIPO_ATTO_OPZIONI = [
+  "Acquisto casa da privato",
+  "Acquisto casa da costruttore/soggetto IVA",
+  "Acquisto terreni",
+  "Atti societari",
+  "Donazione casa",
+  "Successioni",
+];
+const PRIMA_SECONDA_CASA_OPZIONI = ["Prima casa", "Seconda casa"];
+const TIPOLOGIA_TERRENO_OPZIONI = ["Terreno agricolo", "Terreno non agricolo"];
+const COMPRAVENDITA_MUTUO_OPZIONI = ["Solo compravendita", "Compravendita e mutuo"];
+const AGEVOLAZIONI_OPZIONI = ["Senza agevolazioni", "Piccola proprietà contadina"];
+const TIPOLOGIA_SOCIETARIA_OPZIONI = [
+  "Costituzione società",
+  "Modifiche di società",
+  "Scioglimento società",
+  "Operazioni sul capitale",
+  "Altro",
+];
+const TIPOLOGIA_SUCCESSIONE_OPZIONI = ["Dichiarazione di successione", "Testamento"];
+const GRADO_PARENTELA_OPZIONI = [
+  "Coniuge/parente in linea retta",
+  "Fratello/sorella",
+  "Parente entro il 4° grado",
+  "Parente oltre il 4° grado/estraneo",
+];
+
+const EMPTY_FORM = {
+  nome: "",
+  email: "",
+  telefono: "",
+  tipoAtto: "",
+  sede: "",
+  primaSecondaCasa: "",
+  tipologiaTerreno: "",
+  compravenditaMutuo: "",
+  importoMutuo: "",
+  prezzoVendita: "",
+  renditaCatastale: "",
+  agevolazioni: "",
+  tipologiaSocietaria: "",
+  tipologiaSuccessione: "",
+  gradoParentela: "",
+  messaggio: "",
+};
+
+const fieldInputClass =
+  "w-full border-0 border-b border-line bg-transparent px-0 py-2 text-[15px] text-ink outline-none transition-colors focus:border-navy";
+
+const fileInputClass =
+  fieldInputClass +
+  " cursor-pointer file:mr-4 file:cursor-pointer file:border-0 file:bg-navy file:px-3 file:py-1.5 file:text-xs file:font-semibold file:uppercase file:tracking-wide file:text-offwhite file:transition-colors hover:file:bg-navyDeep";
+
+function Field({ label, children }) {
+  return (
+    <label className="flex flex-col gap-1.5">
+      <span className="text-xs font-semibold uppercase tracking-[0.1em] text-inkSoft">{label}</span>
+      {children}
+    </label>
+  );
+}
+
+function QuoteDialog({ children }) {
+  const [status, setStatus] = useState("idle");
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [files, setFiles] = useState([]);
+
+  function update(field) {
+    return (e) => setForm((f) => ({ ...f, [field]: e.target.value }));
+  }
+
+  function updateTipoAtto(e) {
+    const value = e.target.value;
+    setForm((f) => ({
+      ...EMPTY_FORM,
+      nome: f.nome,
+      email: f.email,
+      telefono: f.telefono,
+      sede: f.sede,
+      messaggio: f.messaggio,
+      tipoAtto: value,
+    }));
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setStatus("sending");
+    try {
+      const data = new FormData();
+      data.append("nome", form.nome);
+      data.append("email", form.email);
+      data.append("telefono", form.telefono);
+      data.append("tipo_atto", form.tipoAtto);
+      data.append("sede", form.sede);
+      data.append("prima_seconda_casa", form.primaSecondaCasa);
+      data.append("tipologia_terreno", form.tipologiaTerreno);
+      data.append("compravendita_mutuo", form.compravenditaMutuo);
+      data.append("importo_mutuo", form.importoMutuo);
+      data.append("prezzo_vendita", form.prezzoVendita);
+      data.append("rendita_catastale", form.renditaCatastale);
+      data.append("agevolazioni", form.agevolazioni);
+      data.append("tipologia_societaria", form.tipologiaSocietaria);
+      data.append("tipologia_successione", form.tipologiaSuccessione);
+      data.append("grado_parentela", form.gradoParentela);
+      data.append("messaggio", form.messaggio);
+      files.forEach((file) => data.append("allegati", file));
+
+      const res = await fetch("/api/send-quote", {
+        method: "POST",
+        body: data,
+      });
+      if (!res.ok) throw new Error("Invio non riuscito");
+      setStatus("sent");
+    } catch (err) {
+      setStatus("error");
+    }
+  }
+
+  return (
+    <Dialog.Root
+      onOpenChange={(open) => {
+        if (open) {
+          setStatus("idle");
+          setForm(EMPTY_FORM);
+          setFiles([]);
+        }
+      }}
+    >
+      <Dialog.Trigger asChild>{children}</Dialog.Trigger>
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 z-[80] bg-navyDeep/50 backdrop-blur-sm transition-opacity duration-300 data-[state=open]:opacity-100 data-[state=closed]:opacity-0" />
+        <Dialog.Content className="fixed left-1/2 top-1/2 z-[90] max-h-[88vh] w-[92%] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto bg-paper p-8 outline-none sm:p-10">
+          <div className="mb-6 flex items-start justify-between gap-6">
+            <div>
+              <div className="font-serif text-sm tracking-[0.08em] text-inkSoft">Contattaci</div>
+              <Dialog.Title className="mt-1 font-serif text-[28px] text-navy">Richiedi un preventivo</Dialog.Title>
+            </div>
+            <Dialog.Close aria-label="Chiudi" className="shrink-0 text-navy/60 transition-colors hover:text-navy">
+              <X className="h-5 w-5" strokeWidth={1.6} />
+            </Dialog.Close>
+          </div>
+          <Dialog.Description className="mb-6 text-sm text-inkSoft">
+            Compila il modulo con i dati della tua richiesta: i campi mostrati cambiano in base al tipo di
+            pratica selezionato. Ti risponderemo al più presto per fornirti un preventivo. I campi con * sono
+            obbligatori.
+          </Dialog.Description>
+
+          {status === "sent" ? (
+            <div className="py-8 text-center">
+              <p className="font-serif text-xl text-navy">Richiesta inviata.</p>
+              <p className="mt-2 text-sm text-inkSoft">Grazie, ti risponderemo il prima possibile.</p>
+            </div>
+          ) : (
+            <form
+              name="preventivo"
+              onSubmit={handleSubmit}
+              encType="multipart/form-data"
+              className="flex flex-col gap-5"
+            >
+              <p className="hidden">
+                <label>
+                  Non compilare questo campo: <input name="bot-field" />
+                </label>
+              </p>
+
+              <Field label="Nome e cognome *">
+                <input required name="nome" value={form.nome} onChange={update("nome")} className={fieldInputClass} />
+              </Field>
+
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                <Field label="Email *">
+                  <input
+                    required
+                    type="email"
+                    name="email"
+                    value={form.email}
+                    onChange={update("email")}
+                    className={fieldInputClass}
+                  />
+                </Field>
+                <Field label="Telefono">
+                  <input
+                    type="tel"
+                    name="telefono"
+                    value={form.telefono}
+                    onChange={update("telefono")}
+                    className={fieldInputClass}
+                  />
+                </Field>
+              </div>
+
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                <Field label="Tipo di operazione *">
+                  <select required name="tipo_atto" value={form.tipoAtto} onChange={updateTipoAtto} className={fieldInputClass}>
+                    <option value="" disabled>
+                      Seleziona…
+                    </option>
+                    {TIPO_ATTO_OPZIONI.map((t) => (
+                      <option key={t} value={t}>
+                        {t}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+                <Field label="Sede di riferimento">
+                  <select name="sede" value={form.sede} onChange={update("sede")} className={fieldInputClass}>
+                    <option value="">Indifferente</option>
+                    <option value="Nola">Nola</option>
+                    <option value="San Felice a Cancello">San Felice a Cancello</option>
+                  </select>
+                </Field>
+              </div>
+
+              {/* Campi dinamici in base al tipo di atto selezionato */}
+              {form.tipoAtto === "Acquisto casa da privato" && (
+                <div className="flex flex-col gap-5 border-l-2 border-line pl-4">
+                  <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                    <Field label="Prima o seconda casa? *">
+                      <select
+                        required
+                        name="prima_seconda_casa"
+                        value={form.primaSecondaCasa}
+                        onChange={update("primaSecondaCasa")}
+                        className={fieldInputClass}
+                      >
+                        <option value="" disabled>
+                          Seleziona…
+                        </option>
+                        {PRIMA_SECONDA_CASA_OPZIONI.map((o) => (
+                          <option key={o} value={o}>
+                            {o}
+                          </option>
+                        ))}
+                      </select>
+                    </Field>
+                    <Field label="Compravendita/Mutuo *">
+                      <select
+                        required
+                        name="compravendita_mutuo"
+                        value={form.compravenditaMutuo}
+                        onChange={update("compravenditaMutuo")}
+                        className={fieldInputClass}
+                      >
+                        <option value="" disabled>
+                          Seleziona…
+                        </option>
+                        {COMPRAVENDITA_MUTUO_OPZIONI.map((o) => (
+                          <option key={o} value={o}>
+                            {o}
+                          </option>
+                        ))}
+                      </select>
+                    </Field>
+                  </div>
+                  {form.compravenditaMutuo === "Compravendita e mutuo" && (
+                    <Field label="Importo del mutuo *">
+                      <input
+                        required
+                        type="text"
+                        name="importo_mutuo"
+                        value={form.importoMutuo}
+                        onChange={update("importoMutuo")}
+                        className={fieldInputClass}
+                      />
+                    </Field>
+                  )}
+                  <Field label="Prezzo di vendita *">
+                    <input
+                      required
+                      type="text"
+                      name="prezzo_vendita"
+                      value={form.prezzoVendita}
+                      onChange={update("prezzoVendita")}
+                      className={fieldInputClass}
+                    />
+                  </Field>
+                  <Field label="Rendita catastale *">
+                    <input
+                      required
+                      type="text"
+                      name="rendita_catastale"
+                      value={form.renditaCatastale}
+                      onChange={update("renditaCatastale")}
+                      className={fieldInputClass}
+                    />
+                    <span className="text-xs text-inkSoft">
+                      Indicare la rendita catastale del singolo immobile e, se presenti, delle eventuali{" "}
+                      <span
+                        title="Massimo un immobile in categoria C/6, un immobile in categoria C/7 ed un immobile in categoria C/2"
+                        className="cursor-help underline decoration-dotted underline-offset-2"
+                      >
+                        pertinenze agevolabili
+                      </span>
+                    </span>
+                  </Field>
+                </div>
+              )}
+
+              {form.tipoAtto === "Acquisto casa da costruttore/soggetto IVA" && (
+                <div className="flex flex-col gap-5 border-l-2 border-line pl-4">
+                  <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                    <Field label="Prima o seconda casa? *">
+                      <select
+                        required
+                        name="prima_seconda_casa"
+                        value={form.primaSecondaCasa}
+                        onChange={update("primaSecondaCasa")}
+                        className={fieldInputClass}
+                      >
+                        <option value="" disabled>
+                          Seleziona…
+                        </option>
+                        {PRIMA_SECONDA_CASA_OPZIONI.map((o) => (
+                          <option key={o} value={o}>
+                            {o}
+                          </option>
+                        ))}
+                      </select>
+                    </Field>
+                    <Field label="Compravendita/Mutuo *">
+                      <select
+                        required
+                        name="compravendita_mutuo"
+                        value={form.compravenditaMutuo}
+                        onChange={update("compravenditaMutuo")}
+                        className={fieldInputClass}
+                      >
+                        <option value="" disabled>
+                          Seleziona…
+                        </option>
+                        {COMPRAVENDITA_MUTUO_OPZIONI.map((o) => (
+                          <option key={o} value={o}>
+                            {o}
+                          </option>
+                        ))}
+                      </select>
+                    </Field>
+                  </div>
+                  {form.compravenditaMutuo === "Compravendita e mutuo" && (
+                    <Field label="Importo del mutuo *">
+                      <input
+                        required
+                        type="text"
+                        name="importo_mutuo"
+                        value={form.importoMutuo}
+                        onChange={update("importoMutuo")}
+                        className={fieldInputClass}
+                      />
+                    </Field>
+                  )}
+                  <Field label="Prezzo di vendita *">
+                    <input
+                      required
+                      type="text"
+                      name="prezzo_vendita"
+                      value={form.prezzoVendita}
+                      onChange={update("prezzoVendita")}
+                      className={fieldInputClass}
+                    />
+                  </Field>
+                </div>
+              )}
+
+              {form.tipoAtto === "Acquisto terreni" && (
+                <div className="flex flex-col gap-5 border-l-2 border-line pl-4">
+                  <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                    <Field label="Tipologia di terreno *">
+                      <select
+                        required
+                        name="tipologia_terreno"
+                        value={form.tipologiaTerreno}
+                        onChange={update("tipologiaTerreno")}
+                        className={fieldInputClass}
+                      >
+                        <option value="" disabled>
+                          Seleziona…
+                        </option>
+                        {TIPOLOGIA_TERRENO_OPZIONI.map((o) => (
+                          <option key={o} value={o}>
+                            {o}
+                          </option>
+                        ))}
+                      </select>
+                    </Field>
+                    <Field label="Compravendita/Mutuo *">
+                      <select
+                        required
+                        name="compravendita_mutuo"
+                        value={form.compravenditaMutuo}
+                        onChange={update("compravenditaMutuo")}
+                        className={fieldInputClass}
+                      >
+                        <option value="" disabled>
+                          Seleziona…
+                        </option>
+                        {COMPRAVENDITA_MUTUO_OPZIONI.map((o) => (
+                          <option key={o} value={o}>
+                            {o}
+                          </option>
+                        ))}
+                      </select>
+                    </Field>
+                  </div>
+                  {form.compravenditaMutuo === "Compravendita e mutuo" && (
+                    <Field label="Importo del mutuo *">
+                      <input
+                        required
+                        type="text"
+                        name="importo_mutuo"
+                        value={form.importoMutuo}
+                        onChange={update("importoMutuo")}
+                        className={fieldInputClass}
+                      />
+                    </Field>
+                  )}
+                  <Field label="Prezzo di vendita *">
+                    <input
+                      required
+                      type="text"
+                      name="prezzo_vendita"
+                      value={form.prezzoVendita}
+                      onChange={update("prezzoVendita")}
+                      className={fieldInputClass}
+                    />
+                  </Field>
+                  <Field label="Agevolazioni *">
+                    <select
+                      required
+                      name="agevolazioni"
+                      value={form.agevolazioni}
+                      onChange={update("agevolazioni")}
+                      className={fieldInputClass}
+                    >
+                      <option value="" disabled>
+                        Seleziona…
+                      </option>
+                      {AGEVOLAZIONI_OPZIONI.map((o) => (
+                        <option key={o} value={o}>
+                          {o}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                </div>
+              )}
+
+              {form.tipoAtto === "Atti societari" && (
+                <div className="border-l-2 border-line pl-4">
+                  <Field label="Tipologia *">
+                    <select
+                      required
+                      name="tipologia_societaria"
+                      value={form.tipologiaSocietaria}
+                      onChange={update("tipologiaSocietaria")}
+                      className={fieldInputClass}
+                    >
+                      <option value="" disabled>
+                        Seleziona…
+                      </option>
+                      {TIPOLOGIA_SOCIETARIA_OPZIONI.map((o) => (
+                        <option key={o} value={o}>
+                          {o}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                </div>
+              )}
+
+              {form.tipoAtto === "Donazione casa" && (
+                <div className="flex flex-col gap-5 border-l-2 border-line pl-4">
+                  <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                    <Field label="Prima o seconda casa? *">
+                      <select
+                        required
+                        name="prima_seconda_casa"
+                        value={form.primaSecondaCasa}
+                        onChange={update("primaSecondaCasa")}
+                        className={fieldInputClass}
+                      >
+                        <option value="" disabled>
+                          Seleziona…
+                        </option>
+                        {PRIMA_SECONDA_CASA_OPZIONI.map((o) => (
+                          <option key={o} value={o}>
+                            {o}
+                          </option>
+                        ))}
+                      </select>
+                    </Field>
+                    <Field label="Grado di parentela donatario *">
+                      <select
+                        required
+                        name="grado_parentela"
+                        value={form.gradoParentela}
+                        onChange={update("gradoParentela")}
+                        className={fieldInputClass}
+                      >
+                        <option value="" disabled>
+                          Seleziona…
+                        </option>
+                        {GRADO_PARENTELA_OPZIONI.map((o) => (
+                          <option key={o} value={o}>
+                            {o}
+                          </option>
+                        ))}
+                      </select>
+                    </Field>
+                  </div>
+                  <Field label="Rendita catastale *">
+                    <input
+                      required
+                      type="text"
+                      name="rendita_catastale"
+                      value={form.renditaCatastale}
+                      onChange={update("renditaCatastale")}
+                      className={fieldInputClass}
+                    />
+                    <span className="text-xs text-inkSoft">
+                      Indicare la rendita catastale del singolo immobile e, se presenti, delle eventuali{" "}
+                      <span
+                        title="Massimo un immobile in categoria C/6, un immobile in categoria C/7 ed un immobile in categoria C/2"
+                        className="cursor-help underline decoration-dotted underline-offset-2"
+                      >
+                        pertinenze agevolabili
+                      </span>
+                    </span>
+                  </Field>
+                </div>
+              )}
+
+              {form.tipoAtto === "Successioni" && (
+                <div className="border-l-2 border-line pl-4">
+                  <Field label="Tipologia *">
+                    <select
+                      required
+                      name="tipologia_successione"
+                      value={form.tipologiaSuccessione}
+                      onChange={update("tipologiaSuccessione")}
+                      className={fieldInputClass}
+                    >
+                      <option value="" disabled>
+                        Seleziona…
+                      </option>
+                      {TIPOLOGIA_SUCCESSIONE_OPZIONI.map((o) => (
+                        <option key={o} value={o}>
+                          {o}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                </div>
+              )}
+
+              <Field label="Informazioni aggiuntive">
+                <textarea
+                  name="messaggio"
+                  rows={4}
+                  value={form.messaggio}
+                  onChange={update("messaggio")}
+                  className={fieldInputClass}
+                />
+                <span className="text-xs text-inkSoft">
+                  Scrivi ulteriori informazioni utili alla formulazione del preventivo
+                </span>
+              </Field>
+
+              <Field label="Allega visure catastali">
+                <input
+                  type="file"
+                  name="allegati"
+                  multiple
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  onChange={(e) => setFiles(Array.from(e.target.files || []))}
+                  className={fileInputClass}
+                />
+                <span className="text-xs text-inkSoft">
+                  Facoltativo. Formati accettati: PDF, JPG, PNG — puoi selezionare più file.
+                </span>
+              </Field>
+
+              <label className="flex items-start gap-3 text-xs text-inkSoft">
+                <input required type="checkbox" name="privacy" className="mt-0.5 h-4 w-4 shrink-0 accent-navy" />
+                <span>
+                  Dichiaro di aver letto e compreso le informazioni contenute nella{" "}
+                  <a href="/privacy-policy.html" target="_blank" rel="noopener" className="underline hover:text-navy">
+                    Privacy Policy
+                  </a>
+                  . *
+                </span>
+              </label>
+
+              {status === "error" && (
+                <p className="text-sm text-red-700">
+                  Si è verificato un errore nell'invio. Riprova oppure scrivi a fmlabella@notariato.it.
+                </p>
+              )}
+
+              <Button type="submit" disabled={status === "sending"} className="mt-2 w-full sm:w-auto">
+                {status === "sending" ? "Invio in corso…" : "Invia richiesta"}
+              </Button>
+            </form>
+          )}
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }
 
@@ -141,12 +754,15 @@ function Header() {
               <span className="pointer-events-none absolute -bottom-0.5 left-0 h-px w-0 bg-navy transition-all duration-300 group-hover:w-full" />
             </a>
           ))}
+          <QuoteDialog>
+            <Button size="sm">Richiedi un preventivo</Button>
+          </QuoteDialog>
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <a
             href="tel:+390818231311"
-            className="hidden items-center gap-2.5 whitespace-nowrap font-serif text-base text-navy sm:flex lg:border-l lg:border-line lg:pl-6"
+            className="hidden items-center gap-2.5 whitespace-nowrap font-serif text-base text-navy lg:flex lg:border-l lg:border-line lg:pl-6"
           >
             <span className="h-[7px] w-[7px] shrink-0 rounded-full bg-navy" />
             081 823 1311
@@ -177,6 +793,11 @@ function Header() {
                     </a>
                   </SheetClose>
                 ))}
+                <QuoteDialog>
+                  <button type="button" className="mt-6 text-left font-serif text-3xl italic text-offwhite/90">
+                    Richiedi un preventivo
+                  </button>
+                </QuoteDialog>
               </nav>
 
               <div className="mt-auto flex flex-col gap-4 border-t border-offwhite/[0.18] px-7 py-8">
@@ -472,6 +1093,8 @@ function Footer() {
         <div className="flex flex-wrap gap-7 text-[12.5px] text-inkSoft">
           <span>© 2026 Filippo Matteo La Bella, Notaio</span>
           <span>San Felice a Cancello · Nola</span>
+          <a href="/privacy-policy.html" className="hover:text-navy">Privacy Policy</a>
+          <a href="/cookie-policy.html" className="hover:text-navy">Cookie Policy</a>
         </div>
       </div>
     </footer>

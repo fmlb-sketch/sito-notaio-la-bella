@@ -33,6 +33,13 @@
     />
   </head>
   <body>
+    <!--
+      Il form "Richiedi un preventivo" (vedi src/App.jsx, componente QuoteDialog) non usa
+      più Netlify Forms: viene inviato via fetch alla funzione serverless
+      netlify/functions/send-quote.mjs, che spedisce l'email tramite Resend senza
+      salvare nulla su Netlify. Non serve quindi un form statico "specchio" qui.
+    -->
+
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
