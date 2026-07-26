@@ -20,6 +20,7 @@ const buttonVariants = cva(
       variant: {
         default: "border border-navy bg-navy text-offwhite hover:bg-navyDeep hover:border-navyDeep",
         outline: "border border-navy bg-transparent text-navy hover:bg-navy hover:text-offwhite",
+        soft: "border border-line bg-paperDeep text-navy hover:border-navy hover:bg-line",
         ghost: "text-navy hover:bg-paperDeep",
         ghostInverse: "text-offwhite hover:bg-white/10",
       },
@@ -871,7 +872,7 @@ function Hero() {
             di San Felice a Cancello e Nola.
           </p>
 
-          <div className="mt-10 flex flex-wrap gap-4">
+          <div className="mt-10 hidden flex-wrap gap-4 lg:flex">
             <Button asChild>
               <a href="https://wa.me/393760390780" target="_blank" rel="noopener">
                 <WhatsAppIcon className="h-4 w-4 shrink-0" />
@@ -884,9 +885,26 @@ function Hero() {
                 Chiama lo studio
               </a>
             </Button>
+          </div>
+          <div className="mt-10 flex flex-wrap gap-4 lg:hidden">
             <QuoteDialog>
-              <Button variant="ghost">Richiedi un preventivo</Button>
+              <Button>
+                Richiedi un preventivo
+                <ArrowUpRight className="h-4 w-4 shrink-0" strokeWidth={2} />
+              </Button>
             </QuoteDialog>
+            <Button asChild variant="outline">
+              <a href="https://wa.me/393760390780" target="_blank" rel="noopener">
+                <WhatsAppIcon className="h-4 w-4 shrink-0" />
+                Scrivi su WhatsApp
+              </a>
+            </Button>
+            <Button asChild variant="soft">
+              <a href="tel:+390818231311">
+                <Phone className="h-4 w-4 shrink-0" strokeWidth={1.6} />
+                Chiama lo studio
+              </a>
+            </Button>
           </div>
         </div>
 
@@ -915,22 +933,22 @@ const PRACTICE_AREAS = [
   {
     index: "01",
     title: "Immobiliare",
-    text: "Compravendite, mutui, donazioni e ogni atto relativo al trasferimento e alla gestione di beni immobili.",
+    text: "Compravendite, mutui e ogni altro atto finalizzato al trasferimento e alla gestione di beni immobili.",
   },
   {
     index: "02",
     title: "Societario",
-    text: "Costituzione di società, modifiche statutarie e operazioni straordinarie per imprese e professionisti.",
+    text: "Atti costitutivi, modifiche statutarie e operazioni straordinarie per imprese, società ed altri enti giuridici.",
   },
   {
     index: "03",
     title: "Successioni e donazioni",
-    text: "Pianificazione successoria, dichiarazioni di successione e donazioni per il passaggio generazionale del patrimonio.",
+    text: "Pianificazione del passaggio generazionale di patrimoni e imprese, mediante donazioni o predisposizione di testamenti pubblici e presentazione delle relative dichiarazioni di successione.",
   },
   {
     index: "04",
-    title: "Famiglia e tutela del patrimonio",
-    text: "Accordi patrimoniali tra coniugi e conviventi, e strumenti a tutela del patrimonio personale e familiare.",
+    title: "Volontaria giurisdizione",
+    text: "Predisposizione dei ricorsi e/o rilascio delle autorizzazioni propedeutiche alla stipula di atti che coinvolgano minori, interdetti, inabilitati o beneficiari di amministrazione di sostegno.",
   },
 ];
 

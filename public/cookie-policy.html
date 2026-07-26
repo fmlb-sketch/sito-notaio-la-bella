@@ -2,6 +2,35 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+
+<!-- Google tag (gtag.js) — caricato solo dopo consenso, vedi banner cookie nel body -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('consent', 'default', { 'analytics_storage': 'denied' });
+  gtag('js', new Date());
+
+  window.__loadGA = function () {
+    if (window.__gaLoaded) return;
+    window.__gaLoaded = true;
+    gtag('consent', 'update', { 'analytics_storage': 'granted' });
+    var s = document.createElement('script');
+    s.async = true;
+    s.src = 'https://www.googletagmanager.com/gtag/js?id=G-ZJCC76697E';
+    document.head.appendChild(s);
+    gtag('config', 'G-ZJCC76697E');
+  };
+
+  (function () {
+    try {
+      var raw = localStorage.getItem('cookie-consent');
+      if (raw) {
+        var saved = JSON.parse(raw);
+        if (saved && saved.statistiche) window.__loadGA();
+      }
+    } catch (e) {}
+  })();
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cookie Policy — Filippo Matteo La Bella, Notaio</title>
 <meta name="description" content="Informativa sull'uso dei cookie e delle tecnologie di tracciamento sul sito dello Studio Notarile Filippo Matteo La Bella.">
@@ -55,6 +84,71 @@
 </head>
 <body class="bg-paper font-sans text-ink antialiased">
 
+<div id="cookie-consent-banner" style="display:none;position:fixed;left:0;right:0;bottom:0;z-index:9999;background:#F6F3EE;border-top:1px solid #D8D6D0;padding:14px clamp(16px,4vw,32px);font-family:'Public Sans',system-ui,sans-serif;box-sizing:border-box;">
+  <div style="max-width:1040px;margin:0 auto;">
+    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;justify-content:space-between;">
+      <p style="margin:0;font-size:13.5px;line-height:1.5;color:#5B5B57;flex:1 1 320px;">
+        Usiamo cookie tecnici sempre attivi e, previo consenso, Google Analytics in forma aggregata. Consulta la
+        <a href="cookie-policy.html" style="color:#22334C;text-decoration:underline;">Cookie Policy</a>.
+      </p>
+      <div style="display:flex;gap:8px;flex:0 0 auto;flex-wrap:wrap;">
+        <button type="button" onclick="window.__cookieCustomizeToggle()" style="border:none;background:transparent;color:#22334C;font-size:13px;font-weight:600;padding:9px 4px;cursor:pointer;text-decoration:underline;">Personalizza</button>
+        <button type="button" onclick="window.__cookieConsent(false)" style="border:1px solid #D8D6D0;background:#EFEBE3;color:#22334C;font-size:13px;font-weight:600;padding:9px 16px;border-radius:6px;cursor:pointer;">Rifiuta</button>
+        <button type="button" onclick="window.__cookieConsent(true)" style="border:1px solid #22334C;background:#22334C;color:#FBFAF7;font-size:13px;font-weight:600;padding:9px 16px;border-radius:6px;cursor:pointer;">Accetta</button>
+      </div>
+    </div>
+    <div id="cookie-consent-panel" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid #D8D6D0;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:8px 0;">
+        <div>
+          <p style="margin:0;font-size:13px;font-weight:600;color:#22334C;">Cookie necessari</p>
+          <p style="margin:2px 0 0;font-size:12px;color:#5B5B57;">Indispensabili al funzionamento del sito. Sempre attivi.</p>
+        </div>
+        <input type="checkbox" checked disabled style="width:18px;height:18px;accent-color:#22334C;flex:0 0 auto;">
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:8px 0;border-top:1px solid #EFEBE3;">
+        <div>
+          <p style="margin:0;font-size:13px;font-weight:600;color:#22334C;">Statistiche (Google Analytics)</p>
+          <p style="margin:2px 0 0;font-size:12px;color:#5B5B57;">Analisi aggregata del traffico e dell'utilizzo del sito.</p>
+        </div>
+        <input type="checkbox" id="cookie-consent-stats" style="width:18px;height:18px;accent-color:#22334C;flex:0 0 auto;">
+      </div>
+      <div style="margin-top:12px;text-align:right;">
+        <button type="button" onclick="window.__cookieSavePreferences()" style="border:1px solid #22334C;background:#22334C;color:#FBFAF7;font-size:13px;font-weight:600;padding:9px 16px;border-radius:6px;cursor:pointer;">Salva preferenze</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  window.__cookieCustomizeToggle = function () {
+    var p = document.getElementById('cookie-consent-panel');
+    if (p) p.style.display = (p.style.display === 'block') ? 'none' : 'block';
+  };
+  window.__cookieConsent = function (statistiche) {
+    var prefs = { necessari: true, statistiche: !!statistiche };
+    localStorage.setItem('cookie-consent', JSON.stringify(prefs));
+    if (prefs.statistiche && window.__loadGA) window.__loadGA();
+    var b = document.getElementById('cookie-consent-banner');
+    if (b) b.style.display = 'none';
+  };
+  window.__cookieSavePreferences = function () {
+    var checkbox = document.getElementById('cookie-consent-stats');
+    window.__cookieConsent(checkbox ? checkbox.checked : false);
+  };
+  (function () {
+    var hasConsent = false;
+    try {
+      var raw = localStorage.getItem('cookie-consent');
+      hasConsent = !!(raw && JSON.parse(raw));
+    } catch (e) {}
+    if (!hasConsent) {
+      document.addEventListener('DOMContentLoaded', function () {
+        var b = document.getElementById('cookie-consent-banner');
+        if (b) b.style.display = 'block';
+      });
+    }
+  })();
+</script>
+
   <header class="border-b border-line bg-paper/90 backdrop-blur-md backdrop-saturate-150">
     <div class="mx-auto flex max-w-[820px] items-center justify-between px-[clamp(24px,5vw,72px)] py-6">
       <a href="index.html" class="flex items-center gap-2.5">
@@ -74,7 +168,7 @@
       resa ai sensi dell'art. 122 del Codice Privacy e del provvedimento generale del Garante per la protezione
       dei dati personali sui cookie.
     </p>
-    <p class="mt-6 text-xs font-medium uppercase tracking-[0.1em] text-inkSoft">Ultimo aggiornamento: 25 luglio 2026</p>
+    <p class="mt-6 text-xs font-medium uppercase tracking-[0.1em] text-inkSoft">Ultimo aggiornamento: 26 luglio 2026</p>
 
     <div class="legal mt-10 border-t border-line pt-2">
 
@@ -88,16 +182,25 @@
 
       <h2>2. Cookie utilizzati da questo sito</h2>
       <p>
-        Questo sito <strong>non utilizza cookie di profilazione</strong>, né cookie di terze parti a fini
-        statistici o pubblicitari, né strumenti di analisi come Google Analytics. Non è pertanto necessario
-        alcun banner di raccolta del consenso ai cookie.
+        Questo sito <strong>non utilizza cookie di profilazione</strong> né cookie di terze parti a fini
+        pubblicitari. Utilizza invece <strong>Google Analytics</strong>, uno strumento di analisi statistica
+        fornito da Google Ireland Limited, per raccogliere informazioni aggregate sulle modalità di utilizzo
+        del sito (pagine visitate, provenienza del traffico, tipo di dispositivo). Google Analytics installa
+        cookie di terze parti sul dispositivo dell'utente e viene attivato solo previo consenso dell'utente,
+        raccolto tramite l'apposito banner mostrato alla prima visita del sito.
       </p>
-      <p>Il sito si avvale unicamente delle seguenti risorse tecniche fornite da servizi terzi:</p>
+      <p>Il sito si avvale delle seguenti risorse tecniche fornite da servizi terzi:</p>
       <table>
         <thead>
           <tr><th>Servizio</th><th>Finalità</th><th>Cookie impostati</th></tr>
         </thead>
         <tbody>
+          <tr>
+            <td>Google Analytics</td>
+            <td>Analisi statistica aggregata del traffico e dell'utilizzo del sito.</td>
+            <td>Cookie di terze parti (es. <code>_ga</code>, <code>_ga_*</code>) con finalità statistica;
+              durata fino a 2 anni. Dati trattati da Google Ireland Limited.</td>
+          </tr>
           <tr>
             <td>Google Fonts</td>
             <td>Caricamento dei caratteri tipografici del sito (Fraunces, Public Sans) dai server di Google.</td>
@@ -114,9 +217,10 @@
         </tbody>
       </table>
       <p>
-        Qualora in futuro venissero introdotti strumenti di analisi statistica, marketing o altre tecnologie
-        di tracciamento, la presente Cookie Policy sarà aggiornata di conseguenza e sarà predisposto un
-        apposito banner per la raccolta del consenso, ove richiesto dalla normativa applicabile.
+        È possibile revocare in qualsiasi momento il consenso prestato cancellando i dati di navigazione
+        (cookie e local storage) relativi al sito dalle impostazioni del proprio browser, oppure disattivare
+        stabilmente il tracciamento tramite l'apposito componente aggiuntivo reso disponibile da Google
+        (<a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener">tools.google.com/dlpage/gaoptout</a>).
       </p>
 
       <h2>3. Come gestire i cookie dal browser</h2>
