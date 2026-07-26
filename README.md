@@ -24,19 +24,18 @@ Se hai già acquistato un dominio (es. `notaiolabella.it`) o vuoi acquistarne un
 1. Nel pannello Netlify del sito, vai su "Domain settings" → "Add a domain".
 2. Segui le istruzioni per puntare il dominio al sito (di solito basta modificare i record DNS presso il tuo fornitore del dominio).
 
-### 4. Attiva l'invio email del form "Richiedi un preventivo"
+### 4. Attiva le notifiche email del form "Richiedi un preventivo"
 
-Il bottone "Richiedi un preventivo" invia i dati (compresi gli eventuali allegati, es. visure catastali) a una piccola funzione del sito che spedisce subito una email a `fmlabella@notariato.it` tramite **Resend**, un servizio di invio email con un piano gratuito. A differenza di Netlify Forms, i file allegati non vengono mai salvati da nessuna parte: passano solo per la durata dell'invio e poi vengono scartati.
+Il bottone "Richiedi un preventivo" apre un modulo che usa **Netlify Forms** (incluso gratuitamente, nessun servizio esterno da configurare). Perché le richieste arrivino via email a `fmlabella@notariato.it`, dopo il primo deploy:
 
-Per attivarlo, dopo aver collegato il sito a Netlify (punto 2):
+1. Nel pannello Netlify del sito, vai su "Forms" (compare in automatico dopo il primo deploy che include il form).
+2. Dovresti vedere un modulo chiamato "preventivo" nell'elenco — significa che Netlify lo ha riconosciuto correttamente.
+3. Vai su "Settings" del form (o "Forms → Notifications") → "Add notification" → "Email notification".
+4. Inserisci `fmlabella@notariato.it` come indirizzo di destinazione e salva.
 
-1. Crea un account gratuito su [resend.com](https://resend.com).
-2. Nel pannello Resend, vai su "Domains" → "Add Domain" e inserisci `notaiofilippomatteolabella.it`. Resend mostrerà alcuni record DNS (TXT/CNAME) da aggiungere presso il tuo fornitore del dominio: questo passaggio serve perché le email arrivino da un indirizzo del tuo dominio (es. `preventivi@notaiofilippomatteolabella.it`) invece che finire più facilmente nello spam. La verifica richiede di solito pochi minuti/ore.
-3. Nel pannello Resend, vai su "API Keys" → "Create API Key" e copia la chiave generata (inizia con `re_...`).
-4. Nel pannello Netlify del sito, vai su "Site configuration" → "Environment variables" → "Add a variable" e crea una variabile chiamata `RESEND_API_KEY` con il valore della chiave copiata al punto precedente. Non condividere né incollare mai questa chiave altrove (email, chat, repository).
-5. Rifai il deploy del sito (basta un nuovo caricamento su GitHub, oppure "Trigger deploy" nel pannello Netlify) perché la funzione venga creata con la variabile disponibile.
+Da quel momento ogni richiesta compilata sul sito arriverà automaticamente via email. Puoi anche consultare tutte le richieste ricevute (ed eventuali allegati) direttamente nel pannello Netlify, sezione "Forms".
 
-Da quel momento ogni richiesta compilata sul sito arriverà come email vera e propria (allegati inclusi) a `fmlabella@notariato.it`, senza restare archiviata su Netlify. Se in futuro vuoi cambiare l'indirizzo di destinazione, basta chiedermelo: è una singola riga nel file `netlify/functions/send-quote.mjs`.
+**Nota sugli allegati**: Netlify Forms accetta un solo file per campo, per questo il modulo ha tre campi distinti "Allega visure catastali" (fino a 3 file). L'email di notifica di Netlify non allega il file direttamente: contiene un link che rimanda al file archiviato nel pannello Netlify, sezione "Forms" — quindi i file restano su Netlify finché non cancelli manualmente la relativa richiesta (consigliato farlo periodicamente se il modulo raccoglie dati sensibili, vedi sezione "Forms → Submissions" per esportare/cancellare le richieste).
 
 ## Modifiche future
 
@@ -49,4 +48,3 @@ Ogni volta che vorrai modificare qualcosa, potrai chiedermelo: aggiornerò i fil
 - `src/index.css` — stili globali (Tailwind CSS)
 - `public/assets/` — logo e icone
 - `tailwind.config.js` — colori e font del brand
-- `netlify/functions/send-quote.mjs` — funzione che invia via email (Resend) le richieste del form "Richiedi un preventivo", allegati inclusi, senza salvarli su Netlify

@@ -133,10 +133,21 @@ function Field({ label, children }) {
 function QuoteDialog({ children }) {
   const [status, setStatus] = useState("idle");
   const [form, setForm] = useState(EMPTY_FORM);
-  const [files, setFiles] = useState([]);
+  const [files, setFiles] = useState([null, null, null]);
 
   function update(field) {
     return (e) => setForm((f) => ({ ...f, [field]: e.target.value }));
+  }
+
+  function updateFile(index) {
+    return (e) => {
+      const file = e.target.files && e.target.files[0] ? e.target.files[0] : null;
+      setFiles((f) => {
+        const next = [...f];
+        next[index] = file;
+        return next;
+      });
+    };
   }
 
   function updateTipoAtto(e) {
@@ -157,6 +168,7 @@ function QuoteDialog({ children }) {
     setStatus("sending");
     try {
       const data = new FormData();
+      data.append("form-name", "preventivo");
       data.append("nome", form.nome);
       data.append("email", form.email);
       data.append("telefono", form.telefono);
@@ -173,9 +185,11 @@ function QuoteDialog({ children }) {
       data.append("tipologia_successione", form.tipologiaSuccessione);
       data.append("grado_parentela", form.gradoParentela);
       data.append("messaggio", form.messaggio);
-      files.forEach((file) => data.append("allegati", file));
+      files.forEach((file, i) => {
+        if (file) data.append(`allegato_${i + 1}`, file);
+      });
 
-      const res = await fetch("/api/send-quote", {
+      const res = await fetch("/", {
         method: "POST",
         body: data,
       });
@@ -192,7 +206,7 @@ function QuoteDialog({ children }) {
         if (open) {
           setStatus("idle");
           setForm(EMPTY_FORM);
-          setFiles([]);
+          setFiles([null, null, null]);
         }
       }}
     >
@@ -227,6 +241,7 @@ function QuoteDialog({ children }) {
               encType="multipart/form-data"
               className="flex flex-col gap-5"
             >
+              <input type="hidden" name="form-name" value="preventivo" />
               <p className="hidden">
                 <label>
                   Non compilare questo campo: <input name="bot-field" />
@@ -635,17 +650,21 @@ function QuoteDialog({ children }) {
                 </span>
               </Field>
 
-              <Field label="Allega visure catastali">
-                <input
-                  type="file"
-                  name="allegati"
-                  multiple
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  onChange={(e) => setFiles(Array.from(e.target.files || []))}
-                  className={fileInputClass}
-                />
+              <Field label="Allega visure catastali (fino a 3 file)">
+                <div className="flex flex-col gap-3">
+                  {[0, 1, 2].map((i) => (
+                    <input
+                      key={i}
+                      type="file"
+                      name={`allegato_${i + 1}`}
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      onChange={updateFile(i)}
+                      className={fileInputClass}
+                    />
+                  ))}
+                </div>
                 <span className="text-xs text-inkSoft">
-                  Facoltativo. Formati accettati: PDF, JPG, PNG — puoi selezionare più file.
+                  Facoltativo. Formati accettati: PDF, JPG, PNG — un file per campo.
                 </span>
               </Field>
 

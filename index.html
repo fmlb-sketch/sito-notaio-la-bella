@@ -34,11 +34,35 @@
   </head>
   <body>
     <!--
-      Il form "Richiedi un preventivo" (vedi src/App.jsx, componente QuoteDialog) non usa
-      più Netlify Forms: viene inviato via fetch alla funzione serverless
-      netlify/functions/send-quote.mjs, che spedisce l'email tramite Resend senza
-      salvare nulla su Netlify. Non serve quindi un form statico "specchio" qui.
+      Modulo statico "specchio" del form React (vedi src/App.jsx, componente QuoteDialog).
+      Serve solo a Netlify per riconoscere il form in fase di build: non viene mostrato
+      all'utente. I nomi dei campi devono corrispondere esattamente a quelli del form React.
+      Netlify Forms supporta un solo file per campo, per questo ci sono tre campi allegato
+      distinti invece di un unico campo con più file.
     -->
+    <form name="preventivo" data-netlify="true" netlify-honeypot="bot-field" enctype="multipart/form-data" hidden>
+      <input type="text" name="nome" />
+      <input type="email" name="email" />
+      <input type="tel" name="telefono" />
+      <input type="text" name="tipo_atto" />
+      <input type="text" name="sede" />
+      <input type="text" name="prima_seconda_casa" />
+      <input type="text" name="tipologia_terreno" />
+      <input type="text" name="compravendita_mutuo" />
+      <input type="text" name="importo_mutuo" />
+      <input type="text" name="prezzo_vendita" />
+      <input type="text" name="rendita_catastale" />
+      <input type="text" name="agevolazioni" />
+      <input type="text" name="tipologia_societaria" />
+      <input type="text" name="tipologia_successione" />
+      <input type="text" name="grado_parentela" />
+      <textarea name="messaggio"></textarea>
+      <input type="file" name="allegato_1" />
+      <input type="file" name="allegato_2" />
+      <input type="file" name="allegato_3" />
+      <input type="text" name="privacy" />
+      <input type="text" name="bot-field" />
+    </form>
 
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
