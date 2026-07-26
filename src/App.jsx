@@ -783,7 +783,7 @@ function Header() {
             href="tel:+390818231311"
             className="hidden items-center gap-2.5 whitespace-nowrap font-serif text-base text-navy lg:flex lg:border-l lg:border-line lg:pl-6"
           >
-            <span className="h-[7px] w-[7px] shrink-0 rounded-full bg-navy" />
+            <Phone className="h-4 w-4 shrink-0" strokeWidth={1.6} />
             081 823 1311
           </a>
 
@@ -862,10 +862,13 @@ function Hero() {
           </h1>
           <p className="mt-[18px] font-serif text-[clamp(20px,2.2vw,27px)] italic text-inkSoft">Notaio</p>
           <p className="mt-7 max-w-[50ch] text-[16.5px] text-inkSoft">
-            Lo studio assiste privati, imprese e professionisti nella redazione di atti pubblici e
+            Dal 2022 lo studio assiste privati, imprese e professionisti nella redazione di atti pubblici e
             nell'autenticazione di scritture private, con particolare esperienza in ambito immobiliare,
-            societario, successorio e nella tutela del patrimonio familiare. Un'attività condotta con rigore
-            giuridico e attenzione alle esigenze di ciascun cliente, nelle sedi di San Felice a Cancello e Nola.
+            societario, successorio e nella tutela del patrimonio familiare.
+          </p>
+          <p className="mt-4 max-w-[50ch] text-[16.5px] text-inkSoft">
+            Un'attività condotta con rigore giuridico e attenzione alle esigenze di ciascun cliente, nelle sedi
+            di San Felice a Cancello e Nola.
           </p>
 
           <div className="mt-10 flex flex-wrap gap-4">
@@ -881,6 +884,9 @@ function Hero() {
                 Chiama lo studio
               </a>
             </Button>
+            <QuoteDialog>
+              <Button variant="ghost">Richiedi un preventivo</Button>
+            </QuoteDialog>
           </div>
         </div>
 
