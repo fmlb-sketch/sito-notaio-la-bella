@@ -11,7 +11,15 @@
 // codice o nel repository.
 
 const TO_EMAIL = "fmlabella@notariato.it";
-const FROM_EMAIL = "Studio Notarile La Bella <preventivi@notaiofilippomatteolabella.it>";
+
+// NOTA TEMPORANEA: il dominio notaiofilippomatteolabella.it non è ancora
+// verificato su Resend (Domains → verifica DNS in corso/da fare). Finché non
+// risulta "Verified" nel pannello Resend, Resend rifiuta l'invio da un
+// indirizzo su quel dominio. Usiamo quindi il mittente di test di Resend, che
+// funziona subito senza verifica. Una volta verificato il dominio, cambia
+// questa riga in:
+//   const FROM_EMAIL = "Studio Notarile La Bella <preventivi@notaiofilippomatteolabella.it>";
+const FROM_EMAIL = "Studio Notarile La Bella <onboarding@resend.dev>";
 
 const FIELD_LABELS = {
   nome: "Nome e cognome",
