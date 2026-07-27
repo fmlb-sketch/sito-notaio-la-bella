@@ -32,6 +32,7 @@ const buttonVariants = cva(
       variant: {
         default: "border border-navy bg-navy text-offwhite hover:bg-navyDeep hover:border-navyDeep",
         outline: "border border-navy bg-transparent text-navy hover:bg-navy hover:text-offwhite",
+        outlineInverse: "border border-offwhite/50 bg-transparent text-offwhite hover:bg-offwhite hover:text-navy",
         soft: "border border-line bg-paperDeep text-navy hover:border-navy hover:bg-line",
         ghost: "text-navy hover:bg-paperDeep",
         ghostInverse: "text-offwhite hover:bg-white/10",
@@ -744,20 +745,20 @@ const NAV_LINKS = [
 
 function Header() {
   return (
-    <header className="sticky top-0 z-50 border-b border-line bg-paper/90 backdrop-blur-md backdrop-saturate-150">
+    <header className="sticky top-0 z-50 border-b border-offwhite/[0.18] bg-navy/95 backdrop-blur-md backdrop-saturate-150">
       <div className="mx-auto flex h-24 max-w-[1180px] items-center justify-between gap-6 px-[clamp(24px,5vw,72px)]">
         <a href="#top" aria-label="Filippo Matteo La Bella, Notaio">
-          <img className="h-[46px] w-auto" src="/assets/logo.png" alt="Filippo Matteo La Bella — Notaio" />
+          <img className="h-[46px] w-auto" src="/assets/logo-invert.png" alt="Filippo Matteo La Bella — Notaio" />
         </a>
 
         <nav className="hidden items-center gap-10 text-sm tracking-[0.02em] lg:flex">
           {NAV_LINKS.map(([label, href]) => (
-            <a key={href} href={href} className="group relative py-1 font-medium text-navy">
+            <a key={href} href={href} className="group relative py-1 font-medium text-offwhite">
               {label}
-              <span className="pointer-events-none absolute -bottom-0.5 left-0 h-px w-0 bg-navy transition-all duration-300 group-hover:w-full" />
+              <span className="pointer-events-none absolute -bottom-0.5 left-0 h-px w-0 bg-offwhite transition-all duration-300 group-hover:w-full" />
             </a>
           ))}
-          <Button asChild size="sm">
+          <Button asChild size="sm" variant="outlineInverse">
             <a href="/preventivo.html">Richiedi un preventivo</a>
           </Button>
         </nav>
@@ -766,7 +767,7 @@ function Header() {
           <a
             href="tel:+390818231311"
             onClick={(e) => reportCallConversion(e, "tel:+390818231311")}
-            className="hidden items-center gap-2.5 whitespace-nowrap font-serif text-base text-navy lg:flex lg:border-l lg:border-line lg:pl-6"
+            className="hidden items-center gap-2.5 whitespace-nowrap font-serif text-base text-offwhite lg:flex lg:border-l lg:border-offwhite/[0.18] lg:pl-6"
           >
             <Phone className="h-4 w-4 shrink-0" strokeWidth={1.6} />
             081 823 1311
@@ -774,7 +775,7 @@ function Header() {
 
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Apri il menu">
+              <Button variant="ghostInverse" size="icon" className="lg:hidden" aria-label="Apri il menu">
                 <Menu className="h-5 w-5" strokeWidth={1.6} />
               </Button>
             </SheetTrigger>
