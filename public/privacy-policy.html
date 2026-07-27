@@ -7,7 +7,12 @@
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
-  gtag('consent', 'default', { 'analytics_storage': 'denied' });
+  gtag('consent', 'default', {
+    'analytics_storage': 'denied',
+    'ad_storage': 'denied',
+    'ad_user_data': 'denied',
+    'ad_personalization': 'denied'
+  });
   gtag('js', new Date());
 
   window.__loadGA = function () {
@@ -21,12 +26,54 @@
     gtag('config', 'G-ZJCC76697E');
   };
 
+  window.__loadAds = function () {
+    if (window.__adsLoaded) return;
+    window.__adsLoaded = true;
+    gtag('consent', 'update', {
+      'ad_storage': 'granted',
+      'ad_user_data': 'granted',
+      'ad_personalization': 'granted'
+    });
+    var s = document.createElement('script');
+    s.async = true;
+    s.src = 'https://www.googletagmanager.com/gtag/js?id=AW-18303197636';
+    document.head.appendChild(s);
+    gtag('config', 'AW-18303197636');
+    gtag('config', 'AW-18303197636/YwXvCNrKn9ccEMTD0pdE', {
+      'phone_conversion_number': '081 823 1311'
+    });
+  };
+
+  // Conversione "click to call" collegata ai link tel: del sito (vedi
+  // onClick su "Chiama lo studio"/numero di telefono). Include un fallback a
+  // tempo per garantire che la chiamata parta comunque anche senza consenso
+  // marketing o se lo script di Google Ads non è disponibile.
+  window.gtag_report_conversion = function (url) {
+    var navigated = false;
+    var navigate = function () {
+      if (navigated) return;
+      navigated = true;
+      if (typeof url !== 'undefined') {
+        window.location = url;
+      }
+    };
+    gtag('event', 'conversion', {
+      'send_to': 'AW-18303197636/lY6KCInti9ccEMTD0pdE',
+      'value': 1.0,
+      'currency': 'EUR',
+      'event_callback': navigate
+    });
+    setTimeout(navigate, 1000);
+    return false;
+  };
+
   (function () {
     try {
       var raw = localStorage.getItem('cookie-consent');
       if (raw) {
         var saved = JSON.parse(raw);
         if (saved && saved.statistiche) window.__loadGA();
+        if (saved && saved.marketing) window.__loadAds();
       }
     } catch (e) {}
   })();
@@ -85,13 +132,13 @@
   <div style="max-width:1040px;margin:0 auto;">
     <div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;justify-content:space-between;">
       <p style="margin:0;font-size:13.5px;line-height:1.5;color:#5B5B57;flex:1 1 320px;">
-        Usiamo cookie tecnici sempre attivi e, previo consenso, Google Analytics in forma aggregata. Consulta la
+        Usiamo cookie tecnici sempre attivi e, previo consenso, servizi di terze parti per statistiche (Google Analytics) e marketing (Google Ads). Consulta la
         <a href="cookie-policy.html" style="color:#22334C;text-decoration:underline;">Cookie Policy</a>.
       </p>
       <div style="display:flex;gap:8px;flex:0 0 auto;flex-wrap:wrap;">
         <button type="button" onclick="window.__cookieCustomizeToggle()" style="border:none;background:transparent;color:#22334C;font-size:13px;font-weight:600;padding:9px 4px;cursor:pointer;text-decoration:underline;">Personalizza</button>
-        <button type="button" onclick="window.__cookieConsent(false)" style="border:1px solid #D8D6D0;background:#EFEBE3;color:#22334C;font-size:13px;font-weight:600;padding:9px 16px;border-radius:6px;cursor:pointer;">Rifiuta</button>
-        <button type="button" onclick="window.__cookieConsent(true)" style="border:1px solid #22334C;background:#22334C;color:#FBFAF7;font-size:13px;font-weight:600;padding:9px 16px;border-radius:6px;cursor:pointer;">Accetta</button>
+        <button type="button" onclick="window.__cookieConsent(false, false)" style="border:1px solid #D8D6D0;background:#EFEBE3;color:#22334C;font-size:13px;font-weight:600;padding:9px 16px;border-radius:6px;cursor:pointer;">Rifiuta</button>
+        <button type="button" onclick="window.__cookieConsent(true, true)" style="border:1px solid #22334C;background:#22334C;color:#FBFAF7;font-size:13px;font-weight:600;padding:9px 16px;border-radius:6px;cursor:pointer;">Accetta</button>
       </div>
     </div>
     <div id="cookie-consent-panel" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid #D8D6D0;">
@@ -109,6 +156,13 @@
         </div>
         <input type="checkbox" id="cookie-consent-stats" style="width:18px;height:18px;accent-color:#22334C;flex:0 0 auto;">
       </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:8px 0;border-top:1px solid #EFEBE3;">
+        <div>
+          <p style="margin:0;font-size:13px;font-weight:600;color:#22334C;">Marketing (Google Ads)</p>
+          <p style="margin:2px 0 0;font-size:12px;color:#5B5B57;">Tracciamento delle conversioni pubblicitarie (es. click e chiamate) per le campagne Google Ads.</p>
+        </div>
+        <input type="checkbox" id="cookie-consent-marketing" style="width:18px;height:18px;accent-color:#22334C;flex:0 0 auto;">
+      </div>
       <div style="margin-top:12px;text-align:right;">
         <button type="button" onclick="window.__cookieSavePreferences()" style="border:1px solid #22334C;background:#22334C;color:#FBFAF7;font-size:13px;font-weight:600;padding:9px 16px;border-radius:6px;cursor:pointer;">Salva preferenze</button>
       </div>
@@ -120,16 +174,18 @@
     var p = document.getElementById('cookie-consent-panel');
     if (p) p.style.display = (p.style.display === 'block') ? 'none' : 'block';
   };
-  window.__cookieConsent = function (statistiche) {
-    var prefs = { necessari: true, statistiche: !!statistiche };
+  window.__cookieConsent = function (statistiche, marketing) {
+    var prefs = { necessari: true, statistiche: !!statistiche, marketing: !!marketing };
     localStorage.setItem('cookie-consent', JSON.stringify(prefs));
     if (prefs.statistiche && window.__loadGA) window.__loadGA();
+    if (prefs.marketing && window.__loadAds) window.__loadAds();
     var b = document.getElementById('cookie-consent-banner');
     if (b) b.style.display = 'none';
   };
   window.__cookieSavePreferences = function () {
-    var checkbox = document.getElementById('cookie-consent-stats');
-    window.__cookieConsent(checkbox ? checkbox.checked : false);
+    var stats = document.getElementById('cookie-consent-stats');
+    var marketing = document.getElementById('cookie-consent-marketing');
+    window.__cookieConsent(stats ? stats.checked : false, marketing ? marketing.checked : false);
   };
   (function () {
     var hasConsent = false;

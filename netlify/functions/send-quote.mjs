@@ -1,148 +1,149 @@
 // Funzione serverless (Netlify Functions v2) che riceve i dati del form
-// "Richiedi un preventivo" e li invia via email tramite l'API di Resend,
-// allegando eventuali file caricati (visure catastali).
+// "Richiedi un preventivo" e li inoltra come email tramite Resend, con gli
+// eventuali allegati incorporati direttamente nel messaggio (nessuna copia
+// dei file salvata su Netlify).
 //
-// A differenza di Netlify Forms, qui i file non vengono mai salvati su
-// Netlify: restano solo in memoria per la durata della richiesta, vengono
-// allegati direttamente all'email e poi scartati.
-//
-// Richiede una variabile d'ambiente RESEND_API_KEY impostata nel pannello
-// Netlify (Site settings → Environment variables). Non va mai inserita nel
-// codice o nel repository.
+// Richiede la variabile d'ambiente RESEND_API_KEY (impostata come secret sul
+// progetto Netlify) e un dominio mittente verificato su Resend.
 
-const TO_EMAIL = "fmlabella@notariato.it";
-
-// NOTA TEMPORANEA: il dominio notaiofilippomatteolabella.it non è ancora
-// verificato su Resend (Domains → verifica DNS in corso/da fare). Finché non
-// risulta "Verified" nel pannello Resend, Resend rifiuta l'invio da un
-// indirizzo su quel dominio. Usiamo quindi il mittente di test di Resend, che
-// funziona subito senza verifica. Una volta verificato il dominio, cambia
-// questa riga in:
-//   const FROM_EMAIL = "Studio Notarile La Bella <preventivi@notaiofilippomatteolabella.it>";
-const FROM_EMAIL = "Studio Notarile La Bella <onboarding@resend.dev>";
-
-const FIELD_LABELS = {
-  nome: "Nome e cognome",
-  email: "Email",
-  telefono: "Telefono",
-  tipo_atto: "Tipo di operazione",
-  sede: "Sede di riferimento",
-  prima_seconda_casa: "Prima o seconda casa",
-  tipologia_terreno: "Tipologia di terreno",
-  compravendita_mutuo: "Compravendita/Mutuo",
-  importo_mutuo: "Importo del mutuo",
-  prezzo_vendita: "Prezzo di vendita",
-  rendita_catastale: "Rendita catastale",
-  agevolazioni: "Agevolazioni",
-  tipologia_societaria: "Tipologia (atti societari)",
-  tipologia_successione: "Tipologia (successione/testamento)",
-  grado_parentela: "Grado di parentela donatario",
-  messaggio: "Informazioni aggiuntive",
-};
+const FROM = "Sito web — Richieste preventivo <preventivi@notaiofilippomatteolabella.it>";
+const TO = ["fmlabella@notariato.it"];
 
 function escapeHtml(value) {
-  return String(value)
+  return value
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
 }
 
-function jsonResponse(body, status) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { "Content-Type": "application/json" },
-  });
-}
-
 export default async (req) => {
   if (req.method !== "POST") {
-    return new Response("Method Not Allowed", { status: 405 });
-  }
-
-  if (!process.env.RESEND_API_KEY) {
-    console.error("RESEND_API_KEY non configurata");
-    return jsonResponse({ ok: false, error: "config" }, 500);
+    return new Response(JSON.stringify({ error: "Metodo non consentito." }), {
+      status: 405,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
   try {
-    const formData = await req.formData();
+    const data = await req.formData();
 
-    // Honeypot anti-spam: se il campo nascosto "bot-field" è compilato,
-    // si tratta quasi certamente di un bot. Rispondiamo positivamente senza
-    // inviare nulla, così il bot non capisce di essere stato scartato.
-    if (formData.get("bot-field")) {
-      return jsonResponse({ ok: true }, 200);
-    }
-
-    const rows = Object.entries(FIELD_LABELS)
-      .map(([key, label]) => {
-        const value = (formData.get(key) || "").toString().trim();
-        return value ? { label, value } : null;
-      })
-      .filter(Boolean);
-
-    const uploadedFiles = formData
-      .getAll("allegati")
-      .filter((f) => f && typeof f === "object" && typeof f.arrayBuffer === "function" && f.size > 0);
-
-    if (uploadedFiles.length) {
-      rows.push({
-        label: "Allegati",
-        value: uploadedFiles.map((f) => f.name).join(", "),
+    // Honeypot anti-spam: se il campo esca compilato, la richiesta è quasi
+    // certamente automatica. Rispondiamo comunque con successo per non dare
+    // indizi utili ai bot, ma non inviamo alcuna email.
+    if ((data.get("bot-field") || "").toString().trim()) {
+      return new Response(JSON.stringify({ ok: true }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
       });
     }
 
+    const get = (name) => (data.get(name) || "").toString().trim();
+
+    const nome = get("nome");
+    const email = get("email");
+
+    if (!nome || !email) {
+      return new Response(JSON.stringify({ error: "Nome ed email sono obbligatori." }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    const fields = [
+      ["Nome e cognome", nome],
+      ["Email", email],
+      ["Telefono", get("telefono")],
+      ["Tipo di operazione", get("tipo_atto")],
+      ["Sede di riferimento", get("sede")],
+      ["Prima o seconda casa", get("prima_seconda_casa")],
+      ["Tipologia di terreno", get("tipologia_terreno")],
+      ["Compravendita/Mutuo", get("compravendita_mutuo")],
+      ["Importo del mutuo", get("importo_mutuo")],
+      ["Prezzo di vendita", get("prezzo_vendita")],
+      ["Rendita catastale", get("rendita_catastale")],
+      ["Agevolazioni", get("agevolazioni")],
+      ["Tipologia societaria", get("tipologia_societaria")],
+      ["Tipologia successione", get("tipologia_successione")],
+      ["Grado di parentela donatario", get("grado_parentela")],
+      ["Informazioni aggiuntive", get("messaggio")],
+    ].filter(([, value]) => value);
+
+    const rowsHtml = fields
+      .map(
+        ([label, value]) =>
+          `<tr><td style="padding:6px 16px 6px 0;color:#5B5B57;font-size:13px;white-space:nowrap;vertical-align:top;">${escapeHtml(
+            label
+          )}</td><td style="padding:6px 0;color:#1D1D1B;font-size:14px;">${escapeHtml(value).replace(
+            /\n/g,
+            "<br>"
+          )}</td></tr>`
+      )
+      .join("");
+
     const html = `
-      <h2 style="font-family:Georgia,serif;color:#22334C;">Nuova richiesta di preventivo dal sito</h2>
-      <table cellpadding="6" cellspacing="0" style="border-collapse:collapse;font-family:sans-serif;font-size:14px;">
-        ${rows
-          .map(
-            (r) =>
-              `<tr><td style="font-weight:600;vertical-align:top;color:#22334C;white-space:nowrap;">${escapeHtml(
-                r.label
-              )}</td><td style="color:#1D1D1B;">${escapeHtml(r.value).replace(/\n/g, "<br>")}</td></tr>`
-          )
-          .join("")}
-      </table>
+      <div style="font-family:Arial,Helvetica,sans-serif;max-width:600px;margin:0 auto;">
+        <h2 style="color:#22334C;font-size:20px;">Nuova richiesta di preventivo</h2>
+        <table style="border-collapse:collapse;width:100%;">${rowsHtml}</table>
+      </div>
     `;
 
-    const attachments = await Promise.all(
-      uploadedFiles.map(async (file) => ({
-        filename: file.name,
-        content: Buffer.from(await file.arrayBuffer()).toString("base64"),
-      }))
-    );
+    const attachments = [];
+    for (const key of ["allegato_1", "allegato_2", "allegato_3"]) {
+      const file = data.get(key);
+      if (file && typeof file === "object" && typeof file.arrayBuffer === "function" && file.size > 0) {
+        const buffer = Buffer.from(await file.arrayBuffer());
+        attachments.push({
+          filename: file.name || `${key}`,
+          content: buffer.toString("base64"),
+        });
+      }
+    }
 
-    const replyTo = (formData.get("email") || "").toString().trim();
-    const tipoAtto = (formData.get("tipo_atto") || "sito web").toString();
+    const tipoAtto = get("tipo_atto");
 
-    const resendResponse = await fetch("https://api.resend.com/emails", {
+    const payload = {
+      from: FROM,
+      to: TO,
+      reply_to: email,
+      subject: `Nuova richiesta di preventivo${tipoAtto ? " — " + tipoAtto : ""}`,
+      html,
+    };
+
+    if (attachments.length > 0) {
+      payload.attachments = attachments;
+    }
+
+    const resendRes = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        from: FROM_EMAIL,
-        to: [TO_EMAIL],
-        reply_to: replyTo || undefined,
-        subject: `Nuova richiesta di preventivo — ${tipoAtto}`,
-        html,
-        attachments: attachments.length ? attachments : undefined,
-      }),
+      body: JSON.stringify(payload),
     });
 
-    if (!resendResponse.ok) {
-      const errorText = await resendResponse.text();
-      console.error("Errore Resend:", resendResponse.status, errorText);
-      return jsonResponse({ ok: false, error: "resend" }, 502);
+    if (!resendRes.ok) {
+      const errText = await resendRes.text();
+      console.error("Errore invio Resend:", resendRes.status, errText);
+      return new Response(JSON.stringify({ error: "Invio non riuscito." }), {
+        status: 502,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
-    return jsonResponse({ ok: true }, 200);
+    return new Response(JSON.stringify({ ok: true }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
   } catch (err) {
-    console.error("Errore invio preventivo:", err);
-    return jsonResponse({ ok: false, error: "server" }, 500);
+    console.error("Errore nella funzione send-quote:", err);
+    return new Response(JSON.stringify({ error: "Errore interno." }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 };
 
-export const config = { path: "/api/send-quote" };
+export const config = {
+  path: "/api/send-quote",
+};

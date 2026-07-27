@@ -11,6 +11,18 @@ function cn(...inputs) {
 }
 
 /* ---------------------------------------------------------------- */
+/* Conversione "click to call" (Google Ads)                          */
+/* ---------------------------------------------------------------- */
+function reportCallConversion(e, href) {
+  e.preventDefault();
+  if (typeof window !== "undefined" && typeof window.gtag_report_conversion === "function") {
+    window.gtag_report_conversion(href);
+  } else if (typeof window !== "undefined") {
+    window.location.href = href;
+  }
+}
+
+/* ---------------------------------------------------------------- */
 /* shadcn/ui — Button                                                */
 /* ---------------------------------------------------------------- */
 const buttonVariants = cva(
@@ -67,7 +79,7 @@ function SheetContent({ className, children, ...props }) {
 }
 
 /* ---------------------------------------------------------------- */
-/* Richiedi un preventivo — form (Netlify Forms)                     */
+/* Richiedi un preventivo — form (funzione serverless + Resend)      */
 /* ---------------------------------------------------------------- */
 const TIPO_ATTO_OPZIONI = [
   "Acquisto casa da privato",
@@ -131,7 +143,7 @@ function Field({ label, children }) {
   );
 }
 
-function QuoteDialog({ children }) {
+function QuoteForm() {
   const [status, setStatus] = useState("idle");
   const [form, setForm] = useState(EMPTY_FORM);
   const [files, setFiles] = useState([null, null, null]);
@@ -169,7 +181,8 @@ function QuoteDialog({ children }) {
     setStatus("sending");
     try {
       const data = new FormData();
-      data.append("form-name", "preventivo");
+      const botField = e.target.elements["bot-field"];
+      data.append("bot-field", botField ? botField.value : "");
       data.append("nome", form.nome);
       data.append("email", form.email);
       data.append("telefono", form.telefono);
@@ -190,7 +203,7 @@ function QuoteDialog({ children }) {
         if (file) data.append(`allegato_${i + 1}`, file);
       });
 
-      const res = await fetch("/", {
+      const res = await fetch("/api/send-quote", {
         method: "POST",
         body: data,
       });
@@ -201,53 +214,27 @@ function QuoteDialog({ children }) {
     }
   }
 
-  return (
-    <Dialog.Root
-      onOpenChange={(open) => {
-        if (open) {
-          setStatus("idle");
-          setForm(EMPTY_FORM);
-          setFiles([null, null, null]);
-        }
-      }}
-    >
-      <Dialog.Trigger asChild>{children}</Dialog.Trigger>
-      <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-[80] bg-navyDeep/50 backdrop-blur-sm transition-opacity duration-300 data-[state=open]:opacity-100 data-[state=closed]:opacity-0" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 z-[90] max-h-[88vh] w-[92%] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto bg-paper p-8 outline-none sm:p-10">
-          <div className="mb-6 flex items-start justify-between gap-6">
-            <div>
-              <div className="font-serif text-sm tracking-[0.08em] text-inkSoft">Contattaci</div>
-              <Dialog.Title className="mt-1 font-serif text-[28px] text-navy">Richiedi un preventivo</Dialog.Title>
-            </div>
-            <Dialog.Close aria-label="Chiudi" className="shrink-0 text-navy/60 transition-colors hover:text-navy">
-              <X className="h-5 w-5" strokeWidth={1.6} />
-            </Dialog.Close>
-          </div>
-          <Dialog.Description className="mb-6 text-sm text-inkSoft">
-            Compila il modulo con i dati della tua richiesta: i campi mostrati cambiano in base al tipo di
-            pratica selezionato. Ti risponderemo al più presto per fornirti un preventivo. I campi con * sono
-            obbligatori.
-          </Dialog.Description>
+  if (status === "sent") {
+    return (
+      <div className="py-8 text-center">
+        <p className="font-serif text-xl text-navy">Richiesta inviata.</p>
+        <p className="mt-2 text-sm text-inkSoft">Grazie, ti risponderemo il prima possibile.</p>
+      </div>
+    );
+  }
 
-          {status === "sent" ? (
-            <div className="py-8 text-center">
-              <p className="font-serif text-xl text-navy">Richiesta inviata.</p>
-              <p className="mt-2 text-sm text-inkSoft">Grazie, ti risponderemo il prima possibile.</p>
-            </div>
-          ) : (
-            <form
-              name="preventivo"
-              onSubmit={handleSubmit}
-              encType="multipart/form-data"
-              className="flex flex-col gap-5"
-            >
-              <input type="hidden" name="form-name" value="preventivo" />
-              <p className="hidden">
-                <label>
-                  Non compilare questo campo: <input name="bot-field" />
-                </label>
-              </p>
+  return (
+    <form
+      name="preventivo"
+      onSubmit={handleSubmit}
+      encType="multipart/form-data"
+      className="flex flex-col gap-5"
+    >
+      <p className="hidden">
+        <label>
+          Non compilare questo campo: <input name="bot-field" />
+        </label>
+      </p>
 
               <Field label="Nome e cognome *">
                 <input required name="nome" value={form.nome} onChange={update("nome")} className={fieldInputClass} />
@@ -689,11 +676,7 @@ function QuoteDialog({ children }) {
               <Button type="submit" disabled={status === "sending"} className="mt-2 w-full sm:w-auto">
                 {status === "sending" ? "Invio in corso…" : "Invia richiesta"}
               </Button>
-            </form>
-          )}
-        </Dialog.Content>
-      </Dialog.Portal>
-    </Dialog.Root>
+    </form>
   );
 }
 
@@ -774,14 +757,15 @@ function Header() {
               <span className="pointer-events-none absolute -bottom-0.5 left-0 h-px w-0 bg-navy transition-all duration-300 group-hover:w-full" />
             </a>
           ))}
-          <QuoteDialog>
-            <Button size="sm">Richiedi un preventivo</Button>
-          </QuoteDialog>
+          <Button asChild size="sm">
+            <a href="/preventivo.html">Richiedi un preventivo</a>
+          </Button>
         </nav>
 
         <div className="flex items-center gap-3">
           <a
             href="tel:+390818231311"
+            onClick={(e) => reportCallConversion(e, "tel:+390818231311")}
             className="hidden items-center gap-2.5 whitespace-nowrap font-serif text-base text-navy lg:flex lg:border-l lg:border-line lg:pl-6"
           >
             <Phone className="h-4 w-4 shrink-0" strokeWidth={1.6} />
@@ -813,15 +797,19 @@ function Header() {
                     </a>
                   </SheetClose>
                 ))}
-                <QuoteDialog>
-                  <button type="button" className="mt-6 text-left font-serif text-3xl italic text-offwhite/90">
+                <SheetClose asChild>
+                  <a href="/preventivo.html" className="mt-6 text-left font-serif text-3xl italic text-offwhite/90">
                     Richiedi un preventivo
-                  </button>
-                </QuoteDialog>
+                  </a>
+                </SheetClose>
               </nav>
 
               <div className="mt-auto flex flex-col gap-4 border-t border-offwhite/[0.18] px-7 py-8">
-                <a href="tel:+390818231311" className="flex items-center gap-2.5 font-serif text-lg text-offwhite">
+                <a
+                  href="tel:+390818231311"
+                  onClick={(e) => reportCallConversion(e, "tel:+390818231311")}
+                  className="flex items-center gap-2.5 font-serif text-lg text-offwhite"
+                >
                   <span className="h-[7px] w-[7px] shrink-0 rounded-full bg-offwhite" />
                   081 823 1311
                 </a>
@@ -880,19 +868,19 @@ function Hero() {
               </a>
             </Button>
             <Button asChild variant="outline">
-              <a href="tel:+390818231311">
+              <a href="tel:+390818231311" onClick={(e) => reportCallConversion(e, "tel:+390818231311")}>
                 <Phone className="h-4 w-4 shrink-0" strokeWidth={1.6} />
                 Chiama lo studio
               </a>
             </Button>
           </div>
           <div className="mt-10 flex flex-wrap gap-4 lg:hidden">
-            <QuoteDialog>
-              <Button>
+            <Button asChild>
+              <a href="/preventivo.html">
                 Richiedi un preventivo
                 <ArrowUpRight className="h-4 w-4 shrink-0" strokeWidth={2} />
-              </Button>
-            </QuoteDialog>
+              </a>
+            </Button>
             <Button asChild variant="outline">
               <a href="https://wa.me/393760390780" target="_blank" rel="noopener">
                 <WhatsAppIcon className="h-4 w-4 shrink-0" />
@@ -900,7 +888,7 @@ function Hero() {
               </a>
             </Button>
             <Button asChild variant="soft">
-              <a href="tel:+390818231311">
+              <a href="tel:+390818231311" onClick={(e) => reportCallConversion(e, "tel:+390818231311")}>
                 <Phone className="h-4 w-4 shrink-0" strokeWidth={1.6} />
                 Chiama lo studio
               </a>
@@ -1073,11 +1061,13 @@ function Sedi() {
 /* Contatti                                                            */
 /* ---------------------------------------------------------------- */
 function ContactRow({ label, value, href, external, sub }) {
+  const isPhoneLink = typeof href === "string" && href.startsWith("tel:");
   return (
     <a
       href={href}
       target={external ? "_blank" : undefined}
       rel={external ? "noopener" : undefined}
+      onClick={isPhoneLink ? (e) => reportCallConversion(e, href) : undefined}
       className="group grid grid-cols-[1fr_auto] items-center gap-6 border-b border-line px-1 py-[30px] transition-all duration-300 hover:bg-paperDeep hover:pl-5 sm:grid-cols-[200px_1fr_auto]"
     >
       <span className="col-span-2 text-xs font-semibold uppercase tracking-[0.14em] text-inkSoft sm:col-span-1">
@@ -1141,6 +1131,45 @@ function Footer() {
         </div>
       </div>
     </footer>
+  );
+}
+
+/* ---------------------------------------------------------------- */
+/* Pagina "Richiedi un preventivo"                                    */
+/* ---------------------------------------------------------------- */
+function QuotePageHeader() {
+  return (
+    <header className="sticky top-0 z-50 border-b border-line bg-paper/90 backdrop-blur-md backdrop-saturate-150">
+      <div className="mx-auto flex h-24 max-w-[1180px] items-center justify-between gap-6 px-[clamp(24px,5vw,72px)]">
+        <a href="/" aria-label="Filippo Matteo La Bella, Notaio">
+          <img className="h-[46px] w-auto" src="/assets/logo.png" alt="Filippo Matteo La Bella — Notaio" />
+        </a>
+        <a href="/" className="text-xs font-semibold uppercase tracking-[0.14em] text-navy hover:opacity-70">
+          ← Torna al sito
+        </a>
+      </div>
+    </header>
+  );
+}
+
+export function QuotePage() {
+  return (
+    <div className="overflow-x-hidden bg-paper font-sans text-ink antialiased">
+      <QuotePageHeader />
+      <main className="mx-auto max-w-[720px] px-[clamp(24px,5vw,72px)] py-[clamp(56px,8vw,96px)]">
+        <div className="font-serif text-sm tracking-[0.08em] text-inkSoft">Contattaci</div>
+        <h1 className="mt-2 font-serif text-[clamp(32px,4.4vw,48px)] font-normal text-navy">Richiedi un preventivo</h1>
+        <p className="mt-4 max-w-[60ch] text-[15.5px] text-inkSoft">
+          Compila il modulo con i dati della tua richiesta: i campi mostrati cambiano in base al tipo di
+          pratica selezionato. Ti risponderemo al più presto per fornirti un preventivo. I campi con * sono
+          obbligatori.
+        </p>
+        <div className="mt-10">
+          <QuoteForm />
+        </div>
+      </main>
+      <Footer />
+    </div>
   );
 }
 

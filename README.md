@@ -24,18 +24,18 @@ Se hai già acquistato un dominio (es. `notaiolabella.it`) o vuoi acquistarne un
 1. Nel pannello Netlify del sito, vai su "Domain settings" → "Add a domain".
 2. Segui le istruzioni per puntare il dominio al sito (di solito basta modificare i record DNS presso il tuo fornitore del dominio).
 
-### 4. Attiva le notifiche email del form "Richiedi un preventivo"
+### 4. Il form "Richiedi un preventivo" (funzione serverless + Resend)
 
-Il bottone "Richiedi un preventivo" apre un modulo che usa **Netlify Forms** (incluso gratuitamente, nessun servizio esterno da configurare). Perché le richieste arrivino via email a `fmlabella@notariato.it`, dopo il primo deploy:
+Il modulo "Richiedi un preventivo" non usa Netlify Forms: invia i dati a una funzione serverless del sito (`netlify/functions/send-quote.mjs`), che compone e spedisce l'email direttamente tramite [Resend](https://resend.com), allegando eventuali file catastali senza salvarne copia su Netlify.
 
-1. Nel pannello Netlify del sito, vai su "Forms" (compare in automatico dopo il primo deploy che include il form).
-2. Dovresti vedere un modulo chiamato "preventivo" nell'elenco — significa che Netlify lo ha riconosciuto correttamente.
-3. Vai su "Settings" del form (o "Forms → Notifications") → "Add notification" → "Email notification".
-4. Inserisci `fmlabella@notariato.it` come indirizzo di destinazione e salva.
+Perché l'invio funzioni servono due cose, già configurate su questo progetto Netlify:
 
-Da quel momento ogni richiesta compilata sul sito arriverà automaticamente via email. Puoi anche consultare tutte le richieste ricevute (ed eventuali allegati) direttamente nel pannello Netlify, sezione "Forms".
+1. **Variabile d'ambiente `RESEND_API_KEY`** — impostata come secret su Netlify (Project configuration → Environment variables). Se in futuro va rigenerata: Resend → API Keys → Create API key (permesso "Sending access", ristretto al dominio `notaiofilippomatteolabella.it`) → incollare il valore su Netlify.
+2. **Dominio mittente verificato su Resend** — `notaiofilippomatteolabella.it` è già verificato; le email partono dall'indirizzo `preventivi@notaiofilippomatteolabella.it` e arrivano a `fmlabella@notariato.it` con risposta impostata (`reply-to`) sull'indirizzo del richiedente.
 
-**Nota sugli allegati**: Netlify Forms accetta un solo file per campo, per questo il modulo ha tre campi distinti "Allega visure catastali" (fino a 3 file). L'email di notifica di Netlify non allega il file direttamente: contiene un link che rimanda al file archiviato nel pannello Netlify, sezione "Forms" — quindi i file restano su Netlify finché non cancelli manualmente la relativa richiesta (consigliato farlo periodicamente se il modulo raccoglie dati sensibili, vedi sezione "Forms → Submissions" per esportare/cancellare le richieste).
+Non serve alcuna configurazione aggiuntiva su Netlify per le notifiche: ogni invio genera direttamente un'email, con gli allegati incorporati nel messaggio. Puoi comunque consultare i log della funzione in caso di problemi da Netlify → Logs → Functions → `send-quote`.
+
+**Nota sugli allegati**: il modulo ha tre campi distinti "Allega visure catastali" (fino a 3 file, un file per campo) — i file vengono incorporati direttamente nell'email inviata, senza restare archiviati da nessuna parte.
 
 ## Modifiche future
 
@@ -43,8 +43,12 @@ Ogni volta che vorrai modificare qualcosa, potrai chiedermelo: aggiornerò i fil
 
 ## Struttura del progetto
 
-- `src/App.jsx` — tutti i contenuti e componenti del sito (testi, sezioni, contatti)
-- `src/main.jsx` — punto di avvio dell'applicazione
+- `src/App.jsx` — tutti i contenuti e componenti del sito (testi, sezioni, contatti, form)
+- `src/main.jsx` — punto di avvio della homepage
+- `preventivo.html` + `src/main-preventivo.jsx` — pagina separata "Richiedi un preventivo" (non più un modulo in sovraimpressione): stessa logica del form, montata come pagina a sé stante all'indirizzo `/preventivo.html`
+- `netlify/functions/send-quote.mjs` — funzione serverless che riceve i dati del form e li inoltra via email tramite Resend
 - `src/index.css` — stili globali (Tailwind CSS)
 - `public/assets/` — logo e icone
 - `tailwind.config.js` — colori e font del brand
+
+Nota: il file `vite.config.js` dichiara entrambe le pagine (`index.html` e `preventivo.html`) come punti di ingresso della build — se in futuro si aggiungono altre pagine standalone, vanno registrate lì.
