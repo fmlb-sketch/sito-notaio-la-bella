@@ -81,8 +81,8 @@
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="google-site-verification" content="e1l5N9UgVsv0nqGzXbnjjU6tqdvTy_MagiTILktuCrA" />
-    <title>Filippo Matteo La Bella — Notaio | San Felice a Cancello · Nola</title>
-    <meta name="description" content="Studio Notarile Filippo Matteo La Bella. Sedi a San Felice a Cancello e Nola. Contatti, indirizzi e recapiti dello studio." />
+    <title>Filippo Matteo La Bella — Notaio | Nola · San Felice a Cancello</title>
+    <meta name="description" content="Studio Notarile Filippo Matteo La Bella. Sedi a Nola e San Felice a Cancello. Contatti, indirizzi e recapiti dello studio." />
 
     <!-- Open Graph / anteprima link (WhatsApp, Facebook, ecc.) -->
     <meta property="og:type" content="website" />
@@ -90,14 +90,82 @@
     <meta property="og:url" content="https://notaiofilippomatteolabella.it/" />
     <meta property="og:site_name" content="Filippo Matteo La Bella, Notaio" />
     <meta property="og:title" content="Filippo Matteo La Bella — Notaio" />
-    <meta property="og:description" content="Studio Notarile a San Felice a Cancello e Nola. Atti pubblici, immobiliare, societario, successioni, famiglia e tutela del patrimonio." />
+    <meta property="og:description" content="Studio Notarile a Nola e San Felice a Cancello. Atti pubblici, immobiliare, societario, successioni, famiglia e tutela del patrimonio." />
     <meta property="og:image" content="https://notaiofilippomatteolabella.it/assets/og-image.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Filippo Matteo La Bella — Notaio" />
-    <meta name="twitter:description" content="Studio Notarile a San Felice a Cancello e Nola." />
+    <meta name="twitter:description" content="Studio Notarile a Nola e San Felice a Cancello." />
     <meta name="twitter:image" content="https://notaiofilippomatteolabella.it/assets/og-image.png" />
+
+    <!-- Dati strutturati (schema.org): sede principale Nola, con raggio di copertura di 50km sui comuni limitrofi -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "LegalService",
+      "name": "Studio Notarile Filippo Matteo La Bella",
+      "image": "https://notaiofilippomatteolabella.it/assets/og-image.png",
+      "url": "https://notaiofilippomatteolabella.it/",
+      "telephone": "+390818231311",
+      "email": "fmlabella@notariato.it",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Via dell'Università, 16",
+        "addressLocality": "Nola",
+        "postalCode": "80035",
+        "addressRegion": "NA",
+        "addressCountry": "IT"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": 40.9269,
+        "longitude": 14.5289
+      },
+      "areaServed": {
+        "@type": "GeoCircle",
+        "geoMidpoint": {
+          "@type": "GeoCoordinates",
+          "latitude": 40.9269,
+          "longitude": 14.5289
+        },
+        "geoRadius": "50000"
+      },
+      "openingHoursSpecification": [
+        {
+          "@type": "OpeningHoursSpecification",
+          "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday"],
+          "opens": "09:00",
+          "closes": "18:00"
+        },
+        {
+          "@type": "OpeningHoursSpecification",
+          "dayOfWeek": "Friday",
+          "opens": "09:00",
+          "closes": "13:00"
+        }
+      ],
+      "department": {
+        "@type": "LegalService",
+        "name": "Studio Notarile Filippo Matteo La Bella — Sede di San Felice a Cancello",
+        "telephone": "+390818231311",
+        "email": "fmlabella@notariato.it",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "Via Roma, 129",
+          "addressLocality": "San Felice a Cancello",
+          "postalCode": "81027",
+          "addressRegion": "CE",
+          "addressCountry": "IT"
+        },
+        "geo": {
+          "@type": "GeoCoordinates",
+          "latitude": 41.017,
+          "longitude": 14.483
+        }
+      }
+    }
+    </script>
 
     <link rel="icon" type="image/png" sizes="512x512" href="/assets/favicon.png" />
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png" />

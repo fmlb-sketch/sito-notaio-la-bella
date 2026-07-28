@@ -858,7 +858,7 @@ function Hero() {
           </p>
           <p className="mt-4 max-w-[50ch] text-[16.5px] text-inkSoft">
             Un'attività condotta con rigore giuridico e attenzione alle esigenze di ciascun cliente, nelle sedi
-            di San Felice a Cancello e Nola.
+            di Nola e San Felice a Cancello.
           </p>
 
           <div className="mt-10 hidden flex-wrap gap-4 lg:flex">
@@ -1126,7 +1126,7 @@ function Footer() {
         <img className="h-[22px] opacity-[0.85]" src="/assets/logo.png" alt="Filippo Matteo La Bella — Notaio" />
         <div className="flex flex-wrap gap-7 text-[12.5px] text-inkSoft">
           <span>© 2026 Filippo Matteo La Bella, Notaio</span>
-          <span>San Felice a Cancello · Nola</span>
+          <span>Nola · San Felice a Cancello</span>
           <a href="/privacy-policy.html" className="hover:text-navy">Privacy Policy</a>
           <a href="/cookie-policy.html" className="hover:text-navy">Cookie Policy</a>
         </div>
