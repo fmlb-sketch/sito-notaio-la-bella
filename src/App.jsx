@@ -994,8 +994,16 @@ const OFFICES = [
 
 function Sedi() {
   return (
-    <section id="sedi" className="bg-navy py-[clamp(72px,10vw,130px)] text-offwhite">
-      <div className="mx-auto max-w-[1180px] px-[clamp(24px,5vw,72px)]">
+    <section id="sedi" className="relative overflow-hidden bg-navy py-[clamp(72px,10vw,130px)] text-offwhite">
+      <img
+        src="/assets/archivio-atti.jpg"
+        alt=""
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover opacity-[0.48]"
+      />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-navy/50 via-navy/65 to-navy/[0.82]" />
+
+      <div className="relative z-10 mx-auto max-w-[1180px] px-[clamp(24px,5vw,72px)]">
         <Reveal className="mb-[clamp(40px,6vw,64px)] flex flex-wrap items-end justify-between gap-6">
           <div>
             <div className="font-serif text-sm tracking-[0.08em] text-offwhite/55">02 — Sedi</div>
@@ -1091,8 +1099,16 @@ function ContactRow({ label, value, href, external, sub }) {
 
 function Contatti() {
   return (
-    <section id="contatti" className="py-[clamp(72px,10vw,130px)]">
-      <div className="mx-auto max-w-[1180px] px-[clamp(24px,5vw,72px)]">
+    <section id="contatti" className="relative overflow-hidden py-[clamp(72px,10vw,130px)]">
+      <img
+        src="/assets/ufficio-riunioni.jpg"
+        alt=""
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover opacity-30"
+      />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-paper/35 via-paper/55 to-paper/80" />
+
+      <div className="relative z-10 mx-auto max-w-[1180px] px-[clamp(24px,5vw,72px)]">
         <Reveal className="mb-[clamp(40px,6vw,64px)] flex flex-wrap items-end justify-between gap-6">
           <div>
             <div className="font-serif text-sm tracking-[0.08em] text-inkSoft">03 — Contatti</div>
